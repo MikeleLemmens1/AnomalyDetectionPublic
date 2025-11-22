@@ -1,0 +1,61 @@
+services:
+  mssqldb:
+    build:
+      context: mssql # Sort of location of where he searches for files
+      dockerfile: Dockerfile
+    container_name: $CONTAINER_NAME
+    env_file: .env
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=$MSSQL_SA_PASSWORD
+      - MSSQL_PID=Developer
+    ports:
+      - $MSSQL_LOCAL_PORT:$MSSQL_DOCKER_PORT
+    volumes:
+      - mssql-data-volume:/var/opt/mssql/
+    healthcheck:
+      test: ["CMD", "sqlcmd", "-S", "localhost", "-C", "-U", "sa", "-P", "$MSSQL_SA_PASSWORD", "-Q", "SELECT 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  
+  # Try service_completed_successfully when you want to wait for mssqldb.configurator to finish
+  # Loads bacpac + DWH create scripts
+  mssqldb.configurator:
+    build:
+      context: mssql
+      dockerfile: Dockerfile
+    volumes:
+      - ./mssql/CRH.bacpac:/opt/CRH.bacpac # ./CRH should become ./mssql/CRH.bacpac --> /opt/CRH.bacpac
+      - ./SQL_queries:/opt/SQL_queries
+    depends_on:
+      mssqldb:
+        condition: service_healthy
+    profiles: [setup]
+    command: |
+      bash -c '
+      /opt/mssql-tools18/bin/sqlcmd -S mssqldb -U sa -P M0naL1saM1keleAngeL0 -C -d master -Q "CREATE DATABASE CRH"
+      /opt/sqlpackage/sqlpackage /tsn:mssqldb /tu:sa /tp:${MSSQL_SA_PASSWORD} /TargetTrustServerCertificate:True /A:Import /tdn:CRH /sf:/opt/CRH.bacpac
+      '
+
+  # Creates Decoder.exe so that controller.py can use it.
+  # The sleep 30 in this container, was only for debugging, but left as an example
+  datadecoder.creator:
+    build:
+      context: decoderen/DecoderApp/
+      dockerfile: Dockerfile
+    depends_on:
+      mssqldb:
+        condition: service_healthy
+    profiles: [setup]
+    volumes:
+      - ./decoderen/DecoderApp/DecoderApp/bin/release/linux/:/doodles/
+    command: |
+      bash -c '
+      cp -r DecoderApp/out /doodles
+      sleep 30
+      '
+
+volumes:
+  mssql-data-volume:
+    name: ${MSSQL_DATA_VOLUME_NAME} # Real ending name

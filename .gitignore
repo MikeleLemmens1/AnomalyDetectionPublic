@@ -1,0 +1,59 @@
+*.bacpac
+.env
+
+# Ubuntu venv python environment
+venv
+
+# Don't push local solution files
+DecoderApp/DecoderApp/bin/*
+DecocerApp/DecoderApp/obj/*
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+.vs/
+
+*.user
+*.pyc
+**/__pycache__/
+
+# big files 
+**/models
+
+decoderen/csv/DWH_structure/**
+decoderen/csv/raw_data/**
+decoderen/raw_data/**
+overhead/junk/DWH_structure/**
+
+decoded_data/FCA/**
+decoded_data/SJT/**
+decoded_data/BA51/**
+decoded_data/PAQ/**
+decoded_data/MDQ/**
+decoded_data/DimCandidate.csv
+
+anomalies/FCA/csv/**
+anomalies/SJT/csv/**
+anomalies/PAQ/csv/**
+anomalies/MDQ/csv/**
+anomalies/BAQ/csv/**
+
+mlflow/venv
+files/**
+
+# dontreadme.md 
+
+**/logger/info_logs.log
+**/logger/error_logs.log
